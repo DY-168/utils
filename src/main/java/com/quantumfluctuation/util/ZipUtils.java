@@ -3,6 +3,8 @@ package com.quantumfluctuation.util;
 import lombok.SneakyThrows;
 
 import java.io.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.zip.*;
 
 /**
@@ -20,9 +22,21 @@ public class ZipUtils {
 
     @SneakyThrows
     public static void main(String[] args) {
-        //compress("D:\\project\\demo\\utils\\temp", "D:\\project\\demo\\utils\\temp");
+        //压缩单个文件
+        /*String directory = "D:\\project\\demo\\utils";
+        new File(directory).mkdirs();
+        compress(directory+"\\temp\\huge.json", "D:\\project\\demo\\utils\\temp\\huge.json.zip");*/
+        //压缩文件夹
+        //compress(directory+"\\temp111", directory+"\\temp111.zip");
 
-        decompress("D:\\project\\demo\\utils\\temp.zip");
+        //decompress("D:\\project\\demo\\utils\\temp.zip");
+        Boolean i = true;
+        if (i!=null && !i) {
+            System.out.println("1");
+        }
+
+        LocalDate now = LocalDate.now();
+        LocalDateTime now1 = LocalDateTime.now();
     }
 
     /**
