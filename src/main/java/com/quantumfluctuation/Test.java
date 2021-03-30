@@ -2,7 +2,12 @@ package com.quantumfluctuation;
 
 import com.alibaba.fastjson.JSON;
 import lombok.SneakyThrows;
+import org.redisson.Redisson;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,9 +55,16 @@ public class Test {
             executor.execute(runner);
         }*/
 
+        Config config = new Config();
+        //config.useClusterServers().addNodeAddress("127.0.0.1:6379");
+        config.useSingleServer().setAddress("redis://r-p2ue6ec1f7656e44.redis.rds.aliyuncs.com:6379").setPassword("Zw8rSmbH");
+        RedissonClient redissonClient = Redisson.create(config);
+        RLock lock = redissonClient.getLock("123");
+        lock.lock();
+        lock.unlock();
 
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+        /*ExecutorService executor = Executors.newSingleThreadExecutor();
         final CountDownLatch countDownLatch = new CountDownLatch(10);
         @SuppressWarnings("unchecked")
         final List<Integer> integers = Collections.synchronizedList(new ArrayList<>());
@@ -75,8 +87,15 @@ public class Test {
         //等待所有线程执行完毕
         countDownLatch.await();
         executor.shutdown();
-        System.out.println("end");
+        System.out.println("end");*/
 
+        /*Map<Long, BigDecimal> map = new HashMap<Long, BigDecimal>(){
+            {
+                put(1000096L, new BigDecimal("275000"));
+            }
+        };
+        System.out.println(map.get(1000096L));
+        System.out.println(map.get(1L));*/
     }
 }
 
