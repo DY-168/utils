@@ -15,6 +15,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Test {
     @SneakyThrows
     public static void main(String[] args) {
+        /*Sort sort1 = new Sort();
+        sort1.secoud_name="小李";
+        sort1.NAME="排序算法类被改名了";
+        System.out.println(sort1.secoud_name);
+        System.out.println(sort1.NAME);
+
+        Sort sort2 = new Sort();
+        System.out.println(sort2.secoud_name);
+        System.out.println(sort2.NAME);*/
+
+        Sort insertSort = new Sort("插入排序算法");
+        System.out.println(insertSort.secoud_name);
+
+/*        sort1.NAME="排序算法类被改名了";
+        System.out.println(Sort.NAME);
+        System.out.println(sort1.NAME);
+        System.out.println(sort2.NAME);*/
+
+
         /*ThreadLocal<Integer> local = new ThreadLocal<>();
         local.set(1);
         local.get();
@@ -55,13 +74,13 @@ public class Test {
             executor.execute(runner);
         }*/
 
-        Config config = new Config();
+        /*Config config = new Config();
         //config.useClusterServers().addNodeAddress("127.0.0.1:6379");
         config.useSingleServer().setAddress("redis://r-p2ue6ec1f7656e44.redis.rds.aliyuncs.com:6379").setPassword("Zw8rSmbH");
         RedissonClient redissonClient = Redisson.create(config);
         RLock lock = redissonClient.getLock("123");
         lock.lock();
-        lock.unlock();
+        lock.unlock();*/
 
 
         /*ExecutorService executor = Executors.newSingleThreadExecutor();

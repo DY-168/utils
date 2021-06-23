@@ -3,6 +3,13 @@ package com.quantumfluctuation;
 import java.util.Random;
 
 public class Sort {
+    public static String NAME = "我是排序算法类";
+    public String secoud_name;
+
+    public Sort(String name){
+        secoud_name = name;
+    }
+
     //100次10W随机排序-1200ms
     public static void insertSort(int[] array) {
         int last = array.length;
