@@ -2,25 +2,284 @@ package com.spacedo.demo;
 
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class FileUtilsDemo {
-
+    //原地址 https://blog.csdn.net/qq_20610631/article/details/81100685
+    //官方文档：http://commons.apache.org/proper/commons-io/javadocs/api-2.4/index.html
+    //官方指引：http://commons.apache.org/proper/commons-io/description.html
     @SneakyThrows
     public static void main(String[] args) {
-        //原地址 https://blog.csdn.net/qq_20610631/article/details/81100685
-        //官方文档：http://commons.apache.org/proper/commons-io/javadocs/api-2.4/index.html
-        //官方指引：http://commons.apache.org/proper/commons-io/description.html
+        getProductClass();
+        //productPackge();
+        //testOneClass();
+
+    }
+
+    private static void testOneClass() throws IOException {
+        String javaFileString = FileUtils.readFileToString(new File("D:\\UniversalSettlementReportServiceImpl.java"), "UTF-8");
+        String[] words = javaFileString.split("\\s|;");
+        Set<String> importNames = new HashSet<>();
+        Set<Field> fields = new HashSet<>();
+
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i].trim();
+            word = word.trim();
+            if (word.equals("import")) {
+                String importName = words[i + 1].trim();
+                if(startsWith(importName, "com.ebao.ls.product", "com.ebao.ls.prd", "com.ebao.ls.pd")
+                        && !importName.matches("(.*)model(.*)")
+                ) {
+                    importNames.add(importName);
+                }
+            }
+        }
+
+        for (String importName : importNames) {
+            String className = importName.substring(importName.lastIndexOf(".")+1);
+            Field field = new Field();
+            field.classFullName=importName;
+            field.className=className;
+            fields.add(field);
+        }
+
+        //有属性关键字
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i].trim();
+            word = word.trim();
+            if (word.equals("private") || word.equals("public") || word.equals("protected")){
+                String hxClassName = words[i + 1].trim();
+
+                for (Field field : fields) {
+                    boolean isField = field.className.equals(hxClassName);
+                    if (isField) {
+                        String fieldName = words[i + 2].trim();
+                        field.name=fieldName;
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (String word : words) {
+            String fullMethodName = matchFullMethodName(fields, word);
+            if (fullMethodName!=null) {
+                System.out.println(fullMethodName);
+            }
+        }
+    }
+
+    private static void productPackge() {
+        Collection<File> javaFiles = getJavaFiles(
+                "D:/project/idea/cfg",
+                "D:/project/idea/product"
+        );
+
+        Set<String> packageNames = new HashSet<>();
+        for (File javaFile : javaFiles) {
+            String packageName = getPackageName(javaFile);
+            packageNames.add(packageName);
+        }
+
+        for (String packageName : packageNames) {
+
+        }
+    }
+
+    @SneakyThrows
+    private static String getPackageName(File javaFile) {
+        String javaFileString = FileUtils.readFileToString(javaFile, "UTF-8");
+        String[] words = javaFileString.split("\\s|;");
+        String packageName = null;
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i].trim();
+            if (word.equals("package")) {
+                packageName = words[i+1].trim();
+                break;
+            }
+        }
+        if (!startsWith(packageName, "com.ebao.ls.product", "com.ebao.ls.prd", "com.ebao.ls.pd")) {
+            System.out.println(javaFile.getAbsolutePath());
+        }
+        return packageName;
+    }
+
+    @SneakyThrows
+    private static String getClassFullName(File javaFile) {
+        String javaFileString = FileUtils.readFileToString(javaFile, "UTF-8");
+        String[] words = javaFileString.split("\\s|;");
+        String packageName = null;
+        String classFullName = null;
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i].trim();
+            if (word.equals("package")) {
+                packageName = words[i+1].trim();
+            } else if(word.equals("class")){
+                classFullName = packageName + "." + words[i+1].trim();
+                break;
+            } else if(word.equals("enum")){
+                classFullName = packageName + "." + words[i+1].trim();
+                break;
+            } else if(word.equals("interface")){
+                classFullName = packageName + "." + words[i+1].trim();
+                break;
+            }
+        }
+        if (classFullName == null) {
+            System.out.println(javaFile.getAbsolutePath());
+        }
+        return classFullName;
+    }
+
+    private static void getProductClass() throws IOException {
+        Collection<File> javaFiles = getJavaFiles(
+                "D:/project/idea/pa_baseline",
+                "D:/project/idea/pa",
+                "D:/project/idea/sofa-lite-config/pa-slite-facade",
+                "D:/project/idea/sofa-lite-config/pa-slite-service-proxy"
+        );
+
+        Set<String> allImportWords = new TreeSet<>();
+        Set<String> allFullMethodNames = new TreeSet<>();
+
+        for (File javaFile : javaFiles) {
+            String s = FileUtils.readFileToString(javaFile, "UTF-8");
+            String[] words = s.split("\\s|;");
+            Set<String> importNames = new HashSet<>();
+            Set<Field> fields = new HashSet<>();
+
+            for (int i = 0; i < words.length; i++) {
+                String word = words[i].trim();
+                word = word.trim();
+                if (word.equals("import")) {
+                    String importName = words[i + 1].trim();
+                    if(startsWith(importName, "com.ebao.ls.product", "com.ebao.ls.prd", "com.ebao.ls.pd")
+                            && importName.matches("(.*)model(.*)")
+                    ) {
+                        importNames.add(importName);
+                    }
+                }
+            }
+
+            for (String importName : importNames) {
+                String className = importName.substring(importName.lastIndexOf(".")+1);
+                Field field = new Field();
+                field.classFullName=importName;
+                field.className=className;
+                fields.add(field);
+            }
+
+            for (int i = 0; i < words.length; i++) {
+                String word = words[i].trim();
+                word = word.trim();
+                if (word.equals("private") || word.equals("public") || word.equals("protected")){
+                    String hxClassName = words[i + 1].trim();
+
+                    for (Field field : fields) {
+                        boolean isField = field.className.equals(hxClassName);
+                        if (isField) {
+                            String fieldName = words[i + 2].trim();
+                            field.name=fieldName;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            for (String word : words) {
+                String fullMethodName = matchFullMethodName(fields, word);
+                if (fullMethodName!=null) {
+                    allFullMethodNames.add(fullMethodName);
+                }
+            }
+
+            allImportWords.addAll(importNames);
+        }
+
+        for (String i : allImportWords) {
+            System.out.println(i);
+        }
+
+        for (String i : allFullMethodNames) {
+            System.out.println(i);
+        }
+
+        for (String i : allImportWords) {
+            boolean has = false;
+            for (String m : allFullMethodNames) {
+                if (m.substring(0, m.lastIndexOf(".")).equals(i)) {
+                    has = true;
+                    break;
+                }
+            }
+            if (!has) {
+                System.out.println(i);
+            }
+        }
+    }
+
+    private static String matchFullMethodName(Set<Field> fields, String word){
+        for (Field field : fields) {
+            String methodName = matchMethodName(field.className, word);
+            if (methodName != null) return field.classFullName + "." + methodName + "()";
+            methodName = matchMethodName(field.name, word);
+            if (methodName != null) return field.classFullName + "." + methodName + "()";
+        }
+        return null;
+    }
+
+    private static String matchMethodName(String key, String word) {
+        if (key==null) {
+            return null;
+        }
+        int index = word.indexOf(key+".");
+        if (index!=-1) {
+            int beginIndex = index + key.length() + 1;
+            if (word.length()>beginIndex) {
+                String s = word.substring(beginIndex);
+                int i = s.indexOf("(");
+                if (i!=-1) {
+                    String methodName = s.substring(0, i);
+                    //System.out.println(methodName);
+                    return methodName;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean startsWith(String word, String... prefixes) {
+        for (String prefix : prefixes) {
+            if (word.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static Collection<File> getJavaFiles(String... paths) {
+        Collection<File> files = new ArrayList<>();
+        for (String path : paths) {
+            files.addAll(FileUtils.listFiles(new File(path), new String[]{"java"}, true));
+        }
+        return files;
+    }
+
+
+    private static void demo() throws IOException {
         //1.写 文件/文件夹 如果目标文件不存在，FileUtils会自动创建
         FileUtils.write(new File("D:/a/b/cxyapi.txt"), "程序换api","UTF-8",true);
 
         List<String> lines=new ArrayList<>();
-        lines.add("欢迎访问:");lines.add("www.cxyapi.com");
+        lines.add("欢迎访问:");
+        lines.add("www.cxyapi.com");
         FileUtils.writeLines(new File("D:/a/b/cxyapi.txt"),lines,true);
 
         FileUtils.writeStringToFile(new File("D:/a/b/cxyapi.txt"), "作者：cxy", "UTF-8",true);
@@ -82,4 +341,10 @@ public class FileUtilsDemo {
         // boolean flag = IOUtils.contentEquals(input1, input2);
         // System.out.println(flag);
     }
+}
+
+class Field{
+    String name;
+    String className;
+    String classFullName;
 }
